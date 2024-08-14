@@ -2,6 +2,7 @@
 Serverless Implementation of Announcer Service
 """
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import redis
 from dotenv import load_dotenv
 import json
@@ -17,6 +18,7 @@ r = redis.Redis(host=os.environ.get('KV_ENDPOINT'),
                 ssl=True)
 
 app = Flask(__name__)
+CORS(app)
 load_dotenv()
 master_password = os.environ.get('MASTER_PASSWORD')
 allow_public_access = os.environ.get('ALLOW_PUBLIC_ACCESS')
