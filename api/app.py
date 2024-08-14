@@ -91,7 +91,7 @@ def set_announcement():
     }
 
     if announcement_expiry > 0:
-        announcement_data["expires_at"] = (datetime.datetime.utcnow() + datetime.timedelta(seconds=announcement_expiry)).isoformat()
+        announcement_data["expires_at"] = (datetime.datetime.now() + datetime.timedelta(seconds=announcement_expiry)).isoformat()
         announcement_data_json = json.dumps(announcement_data)
         r.setex(announcement_key, announcement_expiry, announcement_data_json)
     else:
@@ -129,7 +129,7 @@ def get_announcement(announcement_key: str):
     ttl = r.ttl(announcement_key)
     if ttl > 0:
         announcement['expires_in_seconds'] = ttl
-        announcement['expires_at'] = (datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)).isoformat()
+        announcement['expires_at'] = (datetime.datetime.now() + datetime.timedelta(seconds=ttl)).isoformat()
 
     return jsonify(announcement), 200
 
