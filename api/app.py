@@ -101,5 +101,9 @@ def delete_announcement():
     r.delete(announcement_key)
     return jsonify({"message": "Announcement deleted successfully"}), 200
 
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({"message": "Welcome to Signpost"}), 200
+
 if __name__ == '__main__':
     app.run()
