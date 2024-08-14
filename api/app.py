@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 import json
 import os
 import datetime
+import re
+import random
 
 r = redis.Redis(host=os.environ.get('KV_ENDPOINT'), 
                 port=int(os.environ.get("KV_PORT")), 
@@ -32,6 +34,20 @@ def get_current_time():
     Get the current time in a readable format
     """
     return datetime.datetime.utcnow().isoformat()
+
+"""
+Additional Features - Not necessary but fun to have
+"""
+def replace_random_tag(text):
+    """
+    Replace all occurrences of <!rX-Y> with a random number between X and Y (inclusive).
+    """
+    def random_replacement(match):
+        range_start, range_end = map(int, match.group(1).split('-'))
+        return str(random.randint(range_start, range_end))
+    
+    # Replace all occurrences of the pattern with a random number in the specified range
+    return re.sub(r'<!r(\d+)-(\d+)>', random_replacement, text)
 
 @app.route("/announcement/set", methods=['POST'])
 def set_announcement():
@@ -88,6 +104,9 @@ def get_announcement(announcement_key: str):
         if not provided_secret or provided_secret != announcement['secret']:
             return jsonify({"message": "Secret required or incorrect"}), 403
     
+    # Replace the random tag in the announcement content
+    announcement['content'] = replace_random_tag(announcement['content'])
+    
     # Remove the secret before returning the announcement
     if 'secret' in announcement:
         del announcement['secret']
@@ -131,3 +150,4 @@ def home():
 
 if __name__ == '__main__':
     app.run()
+
