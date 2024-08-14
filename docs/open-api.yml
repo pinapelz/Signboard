@@ -1,0 +1,185 @@
+openapi: 3.0.1
+info:
+  title: Announcer Service API
+  description: Signpost is a simple API that provides simple key-value text/JSON storage along with some additional useful features. It is designed to be used as a simple way to store information external to some particular application or site for later retrieval.
+  version: 0.0.1
+servers:
+  - url: https://signpost.pinapelz.com
+    description: Production
+paths:
+  /announcement/set:
+    post:
+      summary: Set or update an announcement
+      description: Create a new announcement or update an existing one. An optional expiry time can be set.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                  description: The unique key for the announcement.
+                value:
+                  type: string
+                  description: The content of the announcement.
+                secret:
+                  type: string
+                  description: A secret key used for updating or deleting the announcement.
+                public:
+                  type: boolean
+                  description: Whether the announcement is public or private.
+                  default: true
+                expiry:
+                  type: integer
+                  description: Expiry time in seconds. If not provided, the announcement does not expire.
+                master_password:
+                  type: string
+                  description: Master password required if public access is disabled.
+      responses:
+        '200':
+          description: Announcement set successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          description: Invalid master password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '403':
+          description: Invalid secret for updating the announcement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /announcement/get/{announcement_key}:
+    get:
+      summary: Get an announcement
+      description: Fetch an announcement using its key. A secret may be required for private announcements.
+      parameters:
+        - name: announcement_key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The key of the announcement to fetch.
+        - name: secret
+          in: query
+          required: false
+          schema:
+            type: string
+          description: The secret key, required if the announcement is private.
+      responses:
+        '200':
+          description: Announcement fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+                  expires_in_seconds:
+                    type: integer
+                  expires_at:
+                    type: string
+                    format: date-time
+        '403':
+          description: Secret required or incorrect
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Announcement not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /announcement/delete:
+    post:
+      summary: Delete an announcement
+      description: Delete an announcement using its key and secret.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                  description: The key of the announcement to delete.
+                secret:
+                  type: string
+                  description: The secret key used for deletion.
+                master_password:
+                  type: string
+                  description: Master password required if public access is disabled.
+      responses:
+        '200':
+          description: Announcement deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          description: Invalid master password or secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Announcement not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /:
+    get:
+      summary: Home route
+      description: A simple welcome message.
+      responses:
+        '200':
+          description: Welcome message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
