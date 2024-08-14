@@ -78,6 +78,10 @@ def get_announcement(announcement_key: str):
         if not provided_secret or provided_secret != announcement['secret']:
             return jsonify({"message": "Secret required or incorrect"}), 403
     
+    # Remove the secret before returning the announcement
+    if 'secret' in announcement:
+        del announcement['secret']
+    
     return jsonify(announcement), 200
 
 
