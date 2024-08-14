@@ -65,6 +65,14 @@ def set_announcement():
     if allow_public_access == 'false' and not verify_master_password(master_password):
         return jsonify({"message": "Invalid master password"}), 401
     
+    # Check if an announcement with the given key already exists
+    existing_announcement_data = r.get(announcement_key)
+    if existing_announcement_data is not None:
+        existing_announcement = json.loads(existing_announcement_data)
+        # Verify the secret if the announcement already exists
+        if existing_announcement['secret'] != announcement_secret:
+            return jsonify({"message": "Invalid secret for updating the announcement"}), 403
+    
     if announcement_expiry is None:
         announcement_expiry = -1
     
