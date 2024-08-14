@@ -7,12 +7,16 @@ from dotenv import load_dotenv
 import json
 import os
 
-r = redis.Redis(host='localhost', port=6379, db=0)
+r = redis.Redis(host=os.environ.get('KV_ENDPOINT'), 
+                port=int(os.environ.get("KV_PORT")), 
+                username=os.environ.get('KV_USERNAME'), 
+                password=os.environ.get('KV_PASSWORD'), 
+                ssl=True)
 
 app = Flask(__name__)
 load_dotenv()
-master_password = os.getenv('MASTER_PASSWORD')
-allow_public_access = os.getenv('ALLOW_PUBLIC_ACCESS')
+master_password = os.environ.get('MASTER_PASSWORD')
+allow_public_access = os.environ.get('ALLOW_PUBLIC_ACCESS')
 
 def verify_master_password(master_password: str):
     """
