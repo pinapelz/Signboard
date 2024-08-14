@@ -33,21 +33,27 @@ def get_current_time():
     """
     Get the current time in a readable format
     """
-    return datetime.datetime.utcnow().isoformat()
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 """
 Additional Features - Not necessary but fun to have
 """
 def replace_random_tag(text):
     """
-    Replace all occurrences of <!rX-Y> with a random number between X and Y (inclusive).
+    Replace all occurrences of <!rX-Y> with a random number between X and Y (inclusive),
+    only if X <= Y. If the range is invalid, the tag is left unchanged.
     """
     def random_replacement(match):
-        range_start, range_end = map(int, match.group(1).split('-'))
-        return str(random.randint(range_start, range_end))
+        range_start, range_end = map(int, match.groups())
+        if range_start <= range_end:
+            return str(random.randint(range_start, range_end))
+        else:
+            # If the range is invalid, return the original tag without changes
+            return match.group(0)
     
     # Replace all occurrences of the pattern with a random number in the specified range
     return re.sub(r'<!r(\d+)-(\d+)>', random_replacement, text)
+
 
 @app.route("/announcement/set", methods=['POST'])
 def set_announcement():
