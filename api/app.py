@@ -6,6 +6,7 @@ import redis
 from dotenv import load_dotenv
 import json
 import os
+import datetime
 
 r = redis.Redis(host=os.environ.get('KV_ENDPOINT'), 
                 port=int(os.environ.get("KV_PORT")), 
@@ -25,6 +26,12 @@ def verify_master_password(master_password: str):
     if master_password is None or master_password != master_password:
         return False
     return True
+
+def get_current_time():
+    """
+    Get the current time in a readable format
+    """
+    return datetime.datetime.utcnow().isoformat()
 
 @app.route("/announcement/set", methods=['POST'])
 def set_announcement():
@@ -49,13 +56,16 @@ def set_announcement():
     announcement_data = {
         "content": announcement_value,
         "secret": announcement_secret,
-        "public": announcement_public  # Store the public flag
+        "public": announcement_public,  # Store the public flag
+        "created_at": get_current_time(),  # Store the creation time
     }
-    announcement_data_json = json.dumps(announcement_data)
-    
+
     if announcement_expiry > 0:
+        announcement_data["expires_at"] = (datetime.datetime.utcnow() + datetime.timedelta(seconds=announcement_expiry)).isoformat()
+        announcement_data_json = json.dumps(announcement_data)
         r.setex(announcement_key, announcement_expiry, announcement_data_json)
     else:
+        announcement_data_json = json.dumps(announcement_data)
         r.set(announcement_key, announcement_data_json)
     
     return jsonify({"message": "Announcement set successfully"}), 200
@@ -82,6 +92,12 @@ def get_announcement(announcement_key: str):
     if 'secret' in announcement:
         del announcement['secret']
     
+    # Include the TTL (time to live) in the response if applicable
+    ttl = r.ttl(announcement_key)
+    if ttl > 0:
+        announcement['expires_in_seconds'] = ttl
+        announcement['expires_at'] = (datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)).isoformat()
+
     return jsonify(announcement), 200
 
 
