@@ -57,7 +57,7 @@ def replace_random_tag(text):
     return re.sub(r'<!r(\d+)-(\d+)>', random_replacement, text)
 
 
-@app.route("/announcement/set", methods=['POST'])
+@app.route("/api/announcement/set", methods=['POST'])
 def set_announcement():
     """
     Set a new announcement or update an existing one
@@ -103,7 +103,7 @@ def set_announcement():
     return jsonify({"message": "Announcement set successfully"}), 200
 
 
-@app.route("/announcement/get/<announcement_key>", methods=['GET'])
+@app.route("/api/announcement/get/<announcement_key>", methods=['GET'])
 def get_announcement(announcement_key: str):
     """
     Fetch an announcement by its user-defined key
@@ -136,7 +136,7 @@ def get_announcement(announcement_key: str):
     return jsonify(announcement), 200
 
 
-@app.route("/announcement/delete", methods=['POST'])
+@app.route("/api/announcement/delete", methods=['POST'])
 def delete_announcement():
     """
     Delete an announcement
