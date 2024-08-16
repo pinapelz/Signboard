@@ -108,6 +108,11 @@ def get_announcement(announcement_key: str):
     """
     Fetch an announcement by its user-defined key
     """
+    # Read secret from the headers
+    master_password = request.args.get('master_password')
+    if allow_public_access == 'false' and not verify_master_password(master_password):
+        return jsonify({"message": "Invalid master password"}), 401
+
     announcement_data = r.get(announcement_key)
     if announcement_data is None:
         return jsonify({"message": "Announcement not found"}), 404
@@ -136,7 +141,7 @@ def get_announcement(announcement_key: str):
     return jsonify(announcement), 200
 
 
-@app.route("/api/announcement/delete", methods=['POST'])
+@app.route("/api/announcement/delete", methods=['POST', 'DELETE'])
 def delete_announcement():
     """
     Delete an announcement
