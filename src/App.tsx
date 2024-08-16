@@ -45,7 +45,7 @@ const App: React.FC = () => {
 
   const fetchAnnouncement = async () => {
     try {
-      const response = await fetch(`api/announcement/get/${announcementKey}`, {
+      const response = await fetch(`/api/announcement/get/${announcementKey}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -125,12 +125,12 @@ const App: React.FC = () => {
             onKeyPress={handleApiKeyKeyPress}
           />
           <input
-              type="password"
-              placeholder="Master Password - Use only if instance is private"
-              id="masterPassword"
-              defaultValue=""
-              style={{ display: instancePublic ? 'none' : 'block' }}
-            />
+            type="password"
+            placeholder="Master Password - Use only if instance is private"
+            id="masterPassword"
+            defaultValue=""
+            style={{ display: instancePublic ? 'none' : 'block' }}
+          />
         </div>
         <div className="tabs">
           <button
@@ -173,9 +173,14 @@ const App: React.FC = () => {
                     <strong>Expires at:</strong> {announcementData.expires_at}
                   </p>
                 )}
+                {announcementData.expires_in_seconds && (
+                  <p>
+                    <strong>Expires in (seconds):</strong> {announcementData.expires_in_seconds}
+                  </p>
+                )}
                 {announcementData.created_at && (
                   <p>
-                    <strong>Created/Modified at:</strong> {announcementData.created_at}
+                    <strong>Created/Modified at:</strong> {new Date(announcementData.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </p>
                 )}
               </div>
@@ -247,9 +252,7 @@ const App: React.FC = () => {
             >
               Delete Announcement
             </button>
-            {deletionMessage && <p>{
-              deletionMessage
-            }</p>}
+            {deletionMessage && <p>{deletionMessage}</p>}
           </div>
         )}
       </main>
