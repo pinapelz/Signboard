@@ -160,6 +160,13 @@ def delete_announcement():
     r.delete(announcement_key)
     return jsonify({"message": "Announcement deleted successfully"}), 200
 
+@app.route("/api/public", methods=['GET'])
+def instance_public():
+    """
+    Check if the instance is public
+    """
+    return jsonify({"public": allow_public_access == 'true'}), 200
+
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({"message": "Welcome to Signpost"}), 200
