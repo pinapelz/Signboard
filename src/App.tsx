@@ -5,9 +5,12 @@ const App: React.FC = () => {
   const [apikey, setApikey] = useState<string>('');
   const [announcementKey, setAnnouncementKey] = useState<string>('');
   const [announcementData, setAnnouncementData] = useState<any>(null);
+  const [addModifyMessage, setAddModifyMessage] = useState<string | null>(null);
+  const [deletionMessage, setDeletionMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [inputType, setInputType] = useState<string>('text');
   const [activeTab, setActiveTab] = useState<string>('view');
+  const [instancePublic, setInstancePublic] = useState<boolean>(true);
 
   useEffect(() => {
     const savedApiKey = localStorage.getItem('apikey');
@@ -15,6 +18,17 @@ const App: React.FC = () => {
       setApikey(savedApiKey);
       setInputType('password');
     }
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/public')
+      .then(response => response.json())
+      .then(data => {
+        setInstancePublic(data.public);
+      })
+      .catch(error => {
+        console.error('Error fetching public announcement:', error);
+      });
   }, []);
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,10 +45,12 @@ const App: React.FC = () => {
 
   const fetchAnnouncement = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/announcement/get/${announcementKey}`, {
+      const response = await fetch(`api/announcement/get/${announcementKey}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'secret': apikey,
+          'master_password': (document.getElementById('masterPassword') as HTMLInputElement).value,
         },
       });
 
@@ -51,21 +67,20 @@ const App: React.FC = () => {
     }
   };
 
-  const addAnnouncement = async (content: string, expiresAt: string) => {
+  const addAnnouncement = async (key: string, content: string, secret: string, pub: boolean, expiresAt: string, masterPass: string) => {
+    const secondsUntilExpiry = Math.floor((new Date(expiresAt).getTime() - new Date().getTime()) / 1000);
     try {
-      const response = await fetch(`http://localhost:5000/announcement/add`, {
+      const response = await fetch(`/api/announcement/set`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content, expires_at: expiresAt, apikey }),
+        body: JSON.stringify({ key: key, value: content, secret: secret, expires_at: secondsUntilExpiry, public: pub, master_password: masterPass }),
       });
-
       if (!response.ok) {
-        throw new Error('Failed to add announcement');
+        setAddModifyMessage('Failed to add announcement');
       }
-
-      alert('Announcement added successfully!');
+      setAddModifyMessage('Announcement set/modified successfully!');
     } catch (err: any) {
       alert(err.message);
     }
@@ -73,19 +88,20 @@ const App: React.FC = () => {
 
   const deleteAnnouncement = async (key: string) => {
     try {
-      const response = await fetch(`/announcement/delete/${key}`, {
+      const response = await fetch(`/api/announcement/delete`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': apikey,
         },
+        body: JSON.stringify({ key: key, secret: apikey, master_password: (document.getElementById('masterPassword') as HTMLInputElement).value }),
       });
 
       if (!response.ok) {
+        setDeletionMessage('Failed to delete announcement');
         throw new Error('Failed to delete announcement');
       }
-
       alert('Announcement deleted successfully!');
+      setDeletionMessage('Announcement deleted successfully!');
     } catch (err: any) {
       alert(err.message);
     }
@@ -108,11 +124,33 @@ const App: React.FC = () => {
             onChange={handleApiKeyChange}
             onKeyPress={handleApiKeyKeyPress}
           />
+          <input
+              type="password"
+              placeholder="Master Password - Use only if instance is private"
+              id="masterPassword"
+              defaultValue=""
+              style={{ display: instancePublic ? 'none' : 'block' }}
+            />
         </div>
         <div className="tabs">
-          <button onClick={() => setActiveTab('view')}>View Announcements</button>
-          <button onClick={() => setActiveTab('add')}>Add Announcement</button>
-          <button onClick={() => setActiveTab('delete')}>Delete Announcement</button>
+          <button
+            className={activeTab === 'view' ? 'active' : ''}
+            onClick={() => setActiveTab('view')}
+          >
+            View
+          </button>
+          <button
+            className={activeTab === 'add' ? 'active' : ''}
+            onClick={() => setActiveTab('add')}
+          >
+            Add/Modify
+          </button>
+          <button
+            className={activeTab === 'delete' ? 'active' : ''}
+            onClick={() => setActiveTab('delete')}
+          >
+            Delete
+          </button>
         </div>
         {activeTab === 'view' && (
           <div className="section">
@@ -147,7 +185,12 @@ const App: React.FC = () => {
         {activeTab === 'add' && (
           <div className="section">
             <h2>Add Announcement</h2>
-            <p>This is a stub for now and doesn't actually work!</p>
+            <p>Set an empty date/time for no expiry!</p>
+            <input
+              type="text"
+              placeholder="Keyword - Term to get the announcement later"
+              id="announcementSetKey"
+            />
             <input
               type="text"
               placeholder="Announcement Content"
@@ -158,21 +201,39 @@ const App: React.FC = () => {
               placeholder="Expiration Date"
               id="announcementExpiresAt"
             />
+            <input
+              type="text"
+              placeholder="Key/Secret - Secret that is used to modify/add"
+              id="announcementSetSecret"
+            />
+            <label>
+              Public
+              <input
+                type="checkbox"
+                id="announcementPublicCheckbox"
+                defaultChecked
+              />
+            </label>
             <button
               onClick={() => {
+                const key = (document.getElementById('announcementSetKey') as HTMLInputElement).value;
                 const content = (document.getElementById('announcementContent') as HTMLInputElement).value;
                 const expiresAt = (document.getElementById('announcementExpiresAt') as HTMLInputElement).value;
-                addAnnouncement(content, expiresAt);
+                const secret = (document.getElementById('announcementSetSecret') as HTMLInputElement).value;
+                const pub = (document.getElementById('announcementPublicCheckbox') as HTMLInputElement).checked;
+                const masterPass = (document.getElementById('announcementSetMasterPass') as HTMLInputElement).value;
+                addAnnouncement(key, content, secret, pub, expiresAt, masterPass);
               }}
             >
-              Add Announcement
+              Add/Modify
             </button>
+            {addModifyMessage && <p>{addModifyMessage}</p>}
           </div>
         )}
         {activeTab === 'delete' && (
           <div className="section">
             <h2>Delete Announcement</h2>
-            <p>This is a stub for now and doesn't actually work!</p>
+            <p>The key you've inputted above will be what we use to authorize the deletion!</p>
             <input
               type="text"
               placeholder="Enter Announcement Key"
@@ -186,6 +247,9 @@ const App: React.FC = () => {
             >
               Delete Announcement
             </button>
+            {deletionMessage && <p>{
+              deletionMessage
+            }</p>}
           </div>
         )}
       </main>
