@@ -111,7 +111,8 @@ const App: React.FC = () => {
     <div className="app">
       <header>
         <h1>Signpost</h1>
-        <p>A simple tool for managing announcements in your Discord server. It's easy to use and free!</p>
+        <a href="https://github.com/pinapelz/Signpost/blob/main/docs/docs.md">API Reference</a>
+        <p>A KV storage text solution designed for hosting plaintext announcements for whatever purpose you need</p>
         <img src="https://files.catbox.moe/y0nnkz.png" alt="Signpost Minecraft"></img>
       </header>
       <main>

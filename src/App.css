@@ -1,7 +1,13 @@
 /* General Styles */
-.app {
+body {
+  background-color: #F5F5DC; /* Beige background */
+  margin: 0;
+  padding: 0;
   font-family: 'Arial', sans-serif;
-  color: #333;
+}
+
+.app {
+  color: #4B2E2E; /* Dark brown */
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
@@ -14,13 +20,13 @@ header {
 
 header h1 {
   font-size: 2.5em;
-  color: #4CAF50;
+  color: #8B4513; /* Saddle brown */
   margin-bottom: 10px;
 }
 
 header p {
   font-size: 1.2em;
-  color: #555;
+  color: #6B4423; /* Darker brown */
 }
 
 header img {
@@ -34,7 +40,7 @@ header img {
 
 .section h2 {
   font-size: 1.8em;
-  color: #333;
+  color: #4B2E2E; /* Dark brown */
   margin-bottom: 10px;
 }
 
@@ -42,13 +48,14 @@ header img {
   width: calc(100% - 20px);
   padding: 10px;
   margin-bottom: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #8B4513; /* Saddle brown */
   border-radius: 4px;
+  background-color: #FFF8DC; /* Cornsilk */
 }
 
 .section button {
   padding: 10px 20px;
-  background-color: #4CAF50;
+  background-color: #8B4513; /* Saddle brown */
   color: white;
   border: none;
   border-radius: 4px;
@@ -57,20 +64,20 @@ header img {
 }
 
 .section button:hover {
-  background-color: #45a049;
+  background-color: #A0522D; /* Sienna */
 }
 
 .announcement {
   margin-top: 20px;
   padding: 15px;
-  border: 1px solid #ddd;
+  border: 1px solid #8B4513; /* Saddle brown */
   border-radius: 4px;
-  background-color: #f9f9f9;
+  background-color: #FFF8DC; /* Cornsilk */
 }
 
 .announcement h3 {
   margin-top: 0;
-  color: #555;
+  color: #6B4423; /* Darker brown */
 }
 
 .error {
@@ -83,7 +90,7 @@ header img {
   display: flex;
   justify-content: space-around;
   margin-top: 20px;
-  border-bottom: 2px solid #ccc;
+  border-bottom: 2px solid #8B4513; /* Saddle brown */
 }
 
 .tabs button {
@@ -92,17 +99,17 @@ header img {
   padding: 10px 20px;
   cursor: pointer;
   font-size: 1em;
-  color: #555;
+  color: #6B4423; /* Darker brown */
   border-bottom: 2px solid transparent;
 }
 
 .tabs button:hover {
-  color: #333;
+  color: #4B2E2E; /* Dark brown */
 }
 
 .tabs button.active {
-  color: #4CAF50;
-  border-bottom: 2px solid #4CAF50;
+  color: #8B4513; /* Saddle brown */
+  border-bottom: 2px solid #8B4513; /* Saddle brown */
 }
 
 /* Tab Content */
