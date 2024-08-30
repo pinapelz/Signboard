@@ -44,14 +44,24 @@ const App: React.FC = () => {
   };
 
   const fetchAnnouncement = async () => {
+    let headers = {};
+    if(instancePublic){
+      headers = {
+        'Content-Type': 'application/json',
+        'secret': apikey,
+      }
+    }
+    else{
+      headers = {
+        'Content-Type': 'application/json',
+        'secret': apikey,
+        'master_password': (document.getElementById('masterPassword') as HTMLInputElement).value,
+      }
+    }
     try {
       const response = await fetch(`/api/announcement/get/${announcementKey}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'secret': apikey,
-          'master_password': (document.getElementById('masterPassword') as HTMLInputElement).value,
-        },
+        headers: headers,
       });
 
       if (!response.ok) {
@@ -87,13 +97,16 @@ const App: React.FC = () => {
   };
 
   const deleteAnnouncement = async (key: string) => {
+    let master_pass = "";
+    if(!instancePublic)
+      master_pass = (document.getElementById('masterPassword') as HTMLInputElement).value
     try {
       const response = await fetch(`/api/announcement/delete`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ key: key, secret: apikey, master_password: (document.getElementById('masterPassword') as HTMLInputElement).value }),
+        body: JSON.stringify({ key: key, secret: apikey, master_password:  master_pass}),
       });
 
       if (!response.ok) {
@@ -227,7 +240,9 @@ const App: React.FC = () => {
                 const expiresAt = (document.getElementById('announcementExpiresAt') as HTMLInputElement).value;
                 const secret = (document.getElementById('announcementSetSecret') as HTMLInputElement).value;
                 const pub = (document.getElementById('announcementPublicCheckbox') as HTMLInputElement).checked;
-                const masterPass = (document.getElementById('announcementSetMasterPass') as HTMLInputElement).value;
+                let masterPass = "";
+                if(!instancePublic)
+                  masterPass = (document.getElementById('announcementSetMasterPass') as HTMLInputElement).value;
                 addAnnouncement(key, content, secret, pub, expiresAt, masterPass);
               }}
             >
