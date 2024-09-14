@@ -4,7 +4,22 @@ import './App.css';
 const App: React.FC = () => {
   const [apikey, setApikey] = useState<string>('');
   const [announcementKey, setAnnouncementKey] = useState<string>('');
-  const [announcementData, setAnnouncementData] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const [addKey, setAddKey] = useState<string>('');
+  const [addContent, setAddContent] = useState<string>('');
+  const [addExpiresAt, setAddExpiresAt] = useState<string>('');
+  const [addSecret, setAddSecret] = useState<string>('');
+  const [addPublic, setAddPublic] = useState<boolean>(true);
+
+  interface AnnouncementData {
+    content: string;
+    expires_at?: string;
+    expires_in_seconds?: number;
+    created_at?: string;
+  }
+
+  const [announcementData, setAnnouncementData] = useState<AnnouncementData | null>(null);
   const [addModifyMessage, setAddModifyMessage] = useState<string | null>(null);
   const [deletionMessage, setDeletionMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +59,7 @@ const App: React.FC = () => {
   };
 
   const fetchAnnouncement = async () => {
+    setLoading(true);
     let headers = {};
     if(instancePublic){
       headers = {
@@ -71,13 +87,20 @@ const App: React.FC = () => {
       const data = await response.json();
       setAnnouncementData(data);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setAnnouncementData(null);
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const addAnnouncement = async (key: string, content: string, secret: string, pub: boolean, expiresAt: string, masterPass: string) => {
+    setLoading(true);
     const secondsUntilExpiry = Math.floor((new Date(expiresAt).getTime() - new Date().getTime()) / 1000);
     try {
       const response = await fetch(`/api/announcement/set`, {
@@ -91,12 +114,20 @@ const App: React.FC = () => {
         setAddModifyMessage('Failed to add announcement');
       }
       setAddModifyMessage('Announcement set/modified successfully!');
-    } catch (err: any) {
-      alert(err.message);
+      localStorage.setItem('announcementKey', key); // Save the key to localStorage
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message);
+      } else {
+        alert('An unknown error occurred');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteAnnouncement = async (key: string) => {
+    setLoading(true);
     let master_pass = "";
     if(!instancePublic)
       master_pass = (document.getElementById('masterPassword') as HTMLInputElement).value
@@ -115,8 +146,14 @@ const App: React.FC = () => {
       }
       alert('Announcement deleted successfully!');
       setDeletionMessage('Announcement deleted successfully!');
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message);
+      } else {
+        alert('An unknown error occurred');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -166,6 +203,7 @@ const App: React.FC = () => {
             Delete
           </button>
         </div>
+        {loading && <div className="loading">Loading...</div>}
         {activeTab === 'view' && (
           <div className="section">
             <h2>View Announcements</h2>
@@ -208,42 +246,41 @@ const App: React.FC = () => {
             <input
               type="text"
               placeholder="Keyword - Term to get the announcement later"
-              id="announcementSetKey"
+              value={addKey}
+              onChange={(e) => setAddKey(e.target.value)}
             />
             <input
               type="text"
               placeholder="Announcement Content"
-              id="announcementContent"
+              value={addContent}
+              onChange={(e) => setAddContent(e.target.value)}
             />
             <input
               type="datetime-local"
               placeholder="Expiration Date"
-              id="announcementExpiresAt"
+              value={addExpiresAt}
+              onChange={(e) => setAddExpiresAt(e.target.value)}
             />
             <input
               type="text"
               placeholder="Key/Secret - Secret that is used to modify/add"
-              id="announcementSetSecret"
+              value={addSecret}
+              onChange={(e) => setAddSecret(e.target.value)}
             />
             <label>
               Public
               <input
                 type="checkbox"
-                id="announcementPublicCheckbox"
-                defaultChecked
+                checked={addPublic}
+                onChange={(e) => setAddPublic(e.target.checked)}
               />
             </label>
             <button
               onClick={() => {
-                const key = (document.getElementById('announcementSetKey') as HTMLInputElement).value;
-                const content = (document.getElementById('announcementContent') as HTMLInputElement).value;
-                const expiresAt = (document.getElementById('announcementExpiresAt') as HTMLInputElement).value;
-                const secret = (document.getElementById('announcementSetSecret') as HTMLInputElement).value;
-                const pub = (document.getElementById('announcementPublicCheckbox') as HTMLInputElement).checked;
                 let masterPass = "";
                 if(!instancePublic)
                   masterPass = (document.getElementById('announcementSetMasterPass') as HTMLInputElement).value;
-                addAnnouncement(key, content, secret, pub, expiresAt, masterPass);
+                addAnnouncement(addKey, addContent, addSecret, addPublic, addExpiresAt, masterPass);
               }}
             >
               Add/Modify
